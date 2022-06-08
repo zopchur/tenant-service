@@ -4,12 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
 import org.springframework.context.annotation.Bean;
-import org.springframework.http.MediaType;
-import org.springframework.http.converter.FormHttpMessageConverter;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.Collections;
 
 @SpringBootApplication
 @EnableEurekaClient
@@ -18,10 +13,11 @@ public class TenantServiceApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(TenantServiceApplication.class, args);
 	}
-
+	
 	@Bean
 	public RestTemplate restTemplate(){
 		RestTemplate restTemplate = new RestTemplate();
 		return restTemplate;
 	}
+
 }

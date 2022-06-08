@@ -2,7 +2,7 @@ package com.des.hackathon.tenant.proxy.impl;
 
 import com.des.hackathon.tenant.beans.AuthInfo;
 import com.des.hackathon.tenant.beans.RealmsInfo;
-import com.des.hackathon.tenant.beans.TenantInfo;
+import com.des.hackathon.tenant.beans.Tenant;
 import com.des.hackathon.tenant.beans.UserInfo;
 import com.des.hackathon.tenant.proxy.KeyClockProxy;
 import com.des.hackathon.tenant.util.TenantConstant;
@@ -45,14 +45,14 @@ public class KeyClockProxyImpl implements KeyClockProxy {
         }
     }
     @Override
-    public RealmsInfo createRelam(String token, TenantInfo tenantInfo) {
+    public RealmsInfo createRelam(String token, Tenant tenantInfo) {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(token);
         RealmsInfo info = new RealmsInfo();
-        info.setId(tenantInfo.getTenandId());
-        info.setRealm(tenantInfo.getTenantName());
+        info.setId(tenantInfo.getOrgName());
+        info.setRealm(tenantInfo.getFirstName());
         info.setEnabled(Boolean.TRUE);
         HttpEntity<MultiValueMap<String, Object>> entity = new HttpEntity(info,headers);
 
@@ -70,25 +70,26 @@ public class KeyClockProxyImpl implements KeyClockProxy {
     }
 
     @Override
-    public String createUserByRealms(String token, TenantInfo tenantInfo){
+    public String createUserByRealms(String token, Tenant tenantInfo){
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(token);
         UserInfo info = new UserInfo();
-        info.setUsername(tenantInfo.getTenantName()+"User");
-        info.setFirstName(tenantInfo.getTenantName()+"User");
-        info.setLastName(tenantInfo.getTenantName()+"User");
+        info.setUsername(tenantInfo.getFirstName()+"User");
+        info.setFirstName(tenantInfo.getFirstName()+"User");
+        info.setLastName(tenantInfo.getLastName()+"User");
         info.setEnabled(Boolean.TRUE);
         info.setEmailVerified(Boolean.TRUE);
 
         HttpEntity<MultiValueMap<String, Object>> entity = new HttpEntity(info,headers);
 
-        ResponseEntity<String> response = restTemplate.postForEntity(TenantConstant.KEYCLOCK_CREATE_USER+"/"+tenantInfo.getTenantName()+"/users", entity, String.class);
+        ResponseEntity<String> response = restTemplate.postForEntity(TenantConstant.KEYCLOCK_USER+"/"+tenantInfo.getFirstName()+"/users", entity, String.class);
 
-        if (response.getStatusCode() == HttpStatus.OK) {
+        if (response.getStatusCode() == HttpStatus.CREATED) {
             System.out.println("Request Successful");
             System.out.println(response.getBody());
+            userPasswordReset(token,tenantInfo);
             return "CREATED";
         } else {
             System.out.println("Request Failed");
@@ -97,4 +98,43 @@ public class KeyClockProxyImpl implements KeyClockProxy {
         }
     }
 
+    private String userPasswordReset(String token, Tenant tenantInfo){
+        ResponseEntity<String> response=null;
+        Map<String,String> input = new HashMap<>();
+        input.put("type", "password");
+        input.put("value","thales@123");
+        input.put("temporary","true");
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(token);
+
+        UserInfo info = getUserDetail(token,tenantInfo);
+        if(info!=null && info.getId()!=null){
+            HttpEntity<MultiValueMap<String, Object>> entity = new HttpEntity(input,headers);
+            restTemplate.put(TenantConstant.KEYCLOCK_USER+"/"+tenantInfo.getFirstName()+"/users/"+info.getId()+"/reset-password", entity);
+        }
+        return "SUCCESS";
+    }
+    private UserInfo getUserDetail(String token, Tenant tenantInfo){
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(token);
+
+        HttpEntity<MultiValueMap<String, Object>> entity = new HttpEntity(headers);
+
+        ResponseEntity<UserInfo[]> response = restTemplate.exchange(TenantConstant.KEYCLOCK_USER+"/"+tenantInfo.getFirstName()+"/users", HttpMethod.GET, entity, UserInfo[].class);
+
+        if (response.getStatusCode() == HttpStatus.OK) {
+            System.out.println("Request Successful");
+            System.out.println(response.getBody());
+            UserInfo [] userInfo = response.getBody();
+            return userInfo[0];
+        } else {
+            System.out.println("Request Failed");
+            System.out.println(response.getStatusCode());
+            return null;
+        }
+    }
 }

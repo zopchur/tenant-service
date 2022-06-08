@@ -4,7 +4,15 @@ server:
 spring:    
   application:
     name: tenant-service   
-     
+  datasource:
+    driverClassName: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/enroll_tenant_db
+    username: gaurav
+    password: gaurav
+  jpa:
+    hibernate:
+      ddl-auto: update
+  show-sql: true
     
 eureka:         
   instance:

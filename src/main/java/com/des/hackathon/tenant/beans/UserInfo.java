@@ -2,6 +2,7 @@ package com.des.hackathon.tenant.beans;
 
 public class UserInfo {
 
+    private String id;
     private String username;
     private String firstName;
     private String lastName;
@@ -55,5 +56,13 @@ public class UserInfo {
 
     public void setEmailVerified(Boolean emailVerified) {
         this.emailVerified = emailVerified;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 }
