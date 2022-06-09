@@ -26,7 +26,7 @@ pipeline {
         
         stage ('create docker image') {
             steps {
-                sh 'docker build -t 8384843080/tenant-service .'
+                sh 'docker build -t tenant-service .'
             }
         }
     }
