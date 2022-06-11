@@ -24,9 +24,21 @@ pipeline {
             }
         }
         
-        stage ('create docker image') {
+        stage("Build image") {
             steps {
-                sh 'docker build -t tenant-serv .'
+                script {
+                    myapp = docker.build("nare629/tenant-service:${env.BUILD_ID}")
+                }
+            }
+        }
+        
+        stage("Push image") {
+            steps {
+                script {
+                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
+                    myapp.push("latest")
+                    myapp.push("${env.BUILD_ID}")
+                }
             }
         }
     }
